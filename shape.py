@@ -6,6 +6,11 @@ from main import ShapeUtils
 
 cap = cv2.VideoCapture(0)
 utils = ShapeUtils()
+
+TEXT_COLOR = (0, 0, 255)
+TEXT_SIZE = 1
+TEXT_FONT = cv2.FONT_HERSHEY_SIMPLEX
+
 while True:
     _, frame = cap.read()  # grab frames from the video feed
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # convert to gray scale
@@ -19,7 +24,7 @@ while True:
         if 250000 > a > 100:  # bound the area of the contour
             approx = cv2.approxPolyDP(
                 contour, 0.01*cv2.arcLength(contour, True), True)
-            cv2.drawContours(frame, [approx], -1, (0, 0, 255), 3)
+            #cv2.drawContours(frame, [approx], -1, (0, 0, 255), 3)
             rect = cv2.minAreaRect(contour)
             box = cv2.boxPoints(rect)
             box_main = box.astype('int')
@@ -37,27 +42,31 @@ while True:
             if len(approx) == 4:  # check for rectangle
                 if abs(w-h) <= 50:  # cheak wheather height and width nearly equal
                     cv2.putText(frame, "Square", (cx, cy),
-                                cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 0))
+                                TEXT_FONT, TEXT_SIZE, TEXT_COLOR)
                 else:
                     cv2.putText(frame, "Rectangle", (cx, cy),
-                                cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 0))
+                                TEXT_FONT, TEXT_SIZE, TEXT_COLOR)
             elif len(approx) == 3:  # check for triangle
                 cv2.putText(frame, "Triangle", (cx, cy),
-                            cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 0))
+                            TEXT_FONT, TEXT_SIZE, TEXT_COLOR)
 
-            elif len(approx) == 5:
+            elif len(approx) == 5:  # cheack for pentagone
                 cv2.putText(frame, "Pentagone", (cx, cy),
-                            cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0))
-
-            elif len(approx) > 10:
+                            TEXT_FONT, TEXT_SIZE, TEXT_COLOR)
+            elif len(approx) == 10:  # cheack for Star
+                cv2.putText(frame, "Star", (cx, cy),
+                            TEXT_FONT, TEXT_SIZE, TEXT_COLOR)
+            elif len(approx) > 10:  # check for wheater it is circle or elips
                 if abs(w-h) <= 50:
                     cv2.putText(frame, "Circle", (cx, cy),
-                                cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 0))
+                                TEXT_FONT, TEXT_SIZE, TEXT_COLOR)
                 else:
                     cv2.putText(frame, "Elips", (cx, cy),
-                                cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 0))
+                                TEXT_FONT, TEXT_SIZE, TEXT_COLOR)
     cv2.imshow("video", frame)
     cv2.imshow("thresh", thresh)
     k = cv2.waitKey(1)
     if k == 27:
         break
+cap.release()
+cv2.destroyAllWindows()
