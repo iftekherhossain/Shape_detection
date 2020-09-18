@@ -38,3 +38,19 @@ class ShapeUtils():
         top_right = sorted_right_most[0]
         bottom_right = sorted_right_most[1]
         return np.array([top_left, top_right, bottom_right, bottom_left])
+
+    @staticmethod
+    def midpoint(a, b):
+        """Finds the midpoint of any two points.
+
+        Args:
+            coordinates of the points
+
+        Returns:
+            Returns the coordinate of the midpoint of the given points.
+
+        """
+        midX = (a[0]+b[0])//2
+        midY = (a[1]+b[1])//2
+        return midX, midY
+
