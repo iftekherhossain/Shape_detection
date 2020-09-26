@@ -1,10 +1,12 @@
 import numpy as np
 import cv2
 import imutils
-from main import ShapeUtils
+from main import ShapeUtils, CentroidTracker
+from collections import OrderedDict
 
 cap = cv2.VideoCapture(0)
 utils = ShapeUtils()
+ct = CentroidTracker()
 
 TEXT_COLOR = (0, 0, 255)
 TEXT_SIZE = 1
@@ -12,6 +14,10 @@ TEXT_FONT = cv2.FONT_HERSHEY_SIMPLEX
 kernel = np.ones((5, 5), np.uint8)
 LENGTH_CONST = 0.01
 AREA_CONST = 0.0001
+FRAME_HEIGHT = 470
+FRAME_WIDTH = 630
+
+
 while True:
     _, frame = cap.read()  # grab frames from the video feed
     cv2.imshow("frame..", frame)
@@ -29,15 +35,21 @@ while True:
     contours = cv2.findContours(
         closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours = imutils.grab_contours(contours)  # grab contours
+    print("MAIN", len(contours))
+    centroids = utils.ret_centroids(contours)
+    print(centroids)
+    test_objs = ct.update(centroids)
+    print("objs", test_objs)
     for contour in contours:  # loop over all contours
         a = cv2.contourArea(contour)  # area of the contour
         if 250000 > a > 100:  # bound the area of the contour
             approx = cv2.approxPolyDP(
                 contour, 0.01*cv2.arcLength(contour, True), True)
             # cv2.drawContours(frame, [approx], -1, (0, 0, 255), 3)
-            rect = cv2.minAreaRect(contour)
+            rect = cv2.minAreaRect(contour)  # get minimum area rectangle
+            # converts rect to box,co-ord array of 4 elements
             box = cv2.boxPoints(rect)
-            box_main = box.astype('int')
+            box_main = box.astype('int')  # convert the box into integer format
             M = cv2.moments(contour)
             ordered_box = utils.order_points(box_main)
             tl, tr, br, bl = ordered_box[0], ordered_box[1], ordered_box[2], ordered_box[3]
@@ -47,12 +59,16 @@ while True:
             trbrX, trbrY = utils.midpoint(tr, br)
             cx = int(M["m10"]/M["m00"])
             cy = int(M["m01"]/M["m00"])
+            #print("kuki", rect)
             wh = rect[1]
             w = wh[0]
             h = wh[1]
-            print("wh", wh)
-            cv2.drawContours(frame, [box_main], -1, (0, 255, 0), 3)
-            print(rect)
+            #print("wh", wh)
+            if h <= FRAME_HEIGHT and w <= FRAME_WIDTH:  # filter out wheather frame as a contour area
+                cv2.drawContours(frame, [box_main], -1, (0, 255, 0), 3)
+            else:
+                continue
+            # print(rect)
             print(len(approx))
             abs_width = round(LENGTH_CONST*w, 3)
             abs_height = round(LENGTH_CONST*h, 3)
