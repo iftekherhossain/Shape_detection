@@ -70,26 +70,6 @@ class ShapeUtils():
                 centroids.append(cents)
         return centroids
 
-# class CentroidTracker():
-#     def __init__(self):
-#         self.id = 0
-#         self.objects = OrderedDict()
-
-#     def ret_centroids(self, contours):
-#         self.contours = contours
-#         self.centroids = []
-#         for cnt in self.contours:
-#             a = cv2.contourArea(cnt)
-#             if 250000 > a > 100:
-#                 M = cv2.moments(cnt)
-#                 cx = int(M["m10"]/M["m00"])
-#                 cy = int(M["m01"]/M["m00"])
-#                 cents = [cx, cy]
-#                 self.centroids.append(cents)
-#         return self.centroids
-
-#     def
-
 
 class CentroidTracker():
     def __init__(self, maxDisappeared=50):
