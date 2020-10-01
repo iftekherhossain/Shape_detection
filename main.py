@@ -62,13 +62,21 @@ class ShapeUtils():
         centroids = []
         for cnt in contours:
             a = cv2.contourArea(cnt)
-            if 250000 > a > 100:
+            if 210000 > a > 150:
                 M = cv2.moments(cnt)
                 cx = int(M["m10"]/M["m00"])
                 cy = int(M["m01"]/M["m00"])
                 cents = [cx, cy]
                 centroids.append(cents)
         return centroids
+
+    @staticmethod
+    def check_linecross(line, point):
+        a = abs(int(point-line))
+        if a <= 10:
+            return 1
+        else:
+            return 0
 
 
 class CentroidTracker():

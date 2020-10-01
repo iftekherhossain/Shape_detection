@@ -50,13 +50,13 @@ while True:
             # converts rect to box,co-ord array of 4 elements
             box = cv2.boxPoints(rect)
             box_main = box.astype('int')  # convert the box into integer format
-            M = cv2.moments(contour)
             ordered_box = utils.order_points(box_main)
             tl, tr, br, bl = ordered_box[0], ordered_box[1], ordered_box[2], ordered_box[3]
             tltrX, tltrY = utils.midpoint(tl, tr)
             blbrX, blbrY = utils.midpoint(bl, br)
             tlblX, tlblY = utils.midpoint(tl, bl)
             trbrX, trbrY = utils.midpoint(tr, br)
+            M = cv2.moments(contour)
             cx = int(M["m10"]/M["m00"])
             cy = int(M["m01"]/M["m00"])
             #print("kuki", rect)
