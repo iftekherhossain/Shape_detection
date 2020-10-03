@@ -6,6 +6,15 @@ import cv2
 from collections import OrderedDict
 from scipy.spatial import distance as dist
 
+TEXT_COLOR = (0, 0, 255)
+TEXT_SIZE = 1
+TEXT_FONT = cv2.FONT_HERSHEY_SIMPLEX
+kernel = np.ones((5, 5), np.uint8)
+LENGTH_CONST = 0.01
+AREA_CONST = 0.0001
+FRAME_HEIGHT = 400
+FRAME_WIDTH = 540
+
 
 class ShapeUtils():
     """This class is used for various shape detection utilites.
@@ -73,10 +82,41 @@ class ShapeUtils():
     @staticmethod
     def check_linecross(line, point):
         a = abs(int(point-line))
-        if a <= 10:
+        if a <= 20:
             return 1
         else:
             return 0
+
+    @staticmethod
+    def print_all(frame, approx, cx, cy, a, w, h, area_const=AREA_CONST, font=TEXT_FONT, size=TEXT_SIZE, color=TEXT_COLOR):
+        if len(approx) == 4:  # check for rectangle
+            area_contour = str(round(a*area_const, 2))+"in^2"
+            if abs(w-h) <= 50:  # cheak wheather height and width nearly equal
+                cv2.putText(frame, "Square :"+area_contour, (cx, cy),
+                            font, size, color)
+            else:
+                cv2.putText(frame, "Rectangle :"+area_contour, (cx, cy),
+                            font, size, color)
+        elif len(approx) == 3:  # check for triangle
+            area_contour = str(round(a*AREA_CONST, 2))+"in^2"
+            cv2.putText(frame, "Triangle :" + area_contour, (cx, cy),
+                        font, size, color)
+        elif len(approx) == 5:  # cheack for pentagone
+            area_contour = str(round(a*AREA_CONST, 2))+"in^2"
+            cv2.putText(frame, "Pentagone:" + area_contour, (cx, cy),
+                        font, size, color)
+        elif len(approx) == 10 and abs(w-h) <= 50:  # cheack for Star
+            area_contour = str(round(a*AREA_CONST, 2))+"in^2"
+            cv2.putText(frame, "Star:" + area_contour, (cx, cy),
+                        font, size, color)
+        elif len(approx) > 10:  # check for wheater it is circle or elips
+            area_contour = str(round(a*AREA_CONST, 2))+"in^2"
+            if abs(w-h) <= 50:
+                cv2.putText(frame, "Circle:" + area_contour, (cx, cy),
+                            font, size, color)
+            else:
+                cv2.putText(frame, "Ellipse:" + area_contour, (cx, cy),
+                            font, size, color)
 
 
 class CentroidTracker():
@@ -145,3 +185,42 @@ class CentroidTracker():
 
                 # return the set of trackable objects
         return self.objects
+
+
+class Threading():
+    @staticmethod
+    def ret_opening(frame, first_frame):
+        #frame = frame[:400, 100:]
+        print("frame shape", frame.shape)
+        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        difference = cv2.absdiff(first_frame, frame)
+        cv2.imshow("diff", difference)
+        blur_frame = cv2.bilateralFilter(difference, 11, 200, 200)
+        cv2.imshow("blurred_frame..", blur_frame)
+        gray = cv2.cvtColor(blur_frame, cv2.COLOR_BGR2GRAY)
+        cv2.imshow("gray", gray)
+        _, thresh = cv2.threshold(
+            gray, 45, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C)
+        cv2.imshow("thresh", thresh)
+        opening = cv2.morphologyEx(
+            thresh, cv2.MORPH_OPEN, kernel, iterations=1)
+        cv2.imshow("opening", opening)
+        return opening
+
+    @staticmethod
+    def counting(contours):
+        global count
+        centroids = utils.ret_centroids(contours)
+        objects = ct.update(centroids)
+        print("objs", len(objects))
+        ids = objects.keys()
+        print(c_arr)
+        for i in ids:
+            c = objects[i]
+            x_, y_ = c[0], c[1]
+            if utils.check_linecross(300, x_) and i not in c_arr:
+                count += 1
+                c_arr.append(i)
+            cv2.putText(frame, "ID : " + str(i), (x_, y_), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                        (255, 0, 0), 3, cv2.LINE_AA, False)
+        print("COUNTING", count)
