@@ -35,6 +35,8 @@ def counting(contours, frame):
     print(c_arr)
     for i in ids:
         c = objects[i]
+        if c[0] < 80:  # if any object centroid tends to end of the frame ignore the frame
+            continue
         x_, y_ = c[0], c[1]
         if utils.check_linecross(300, x_) and i not in c_arr:
             count += 1
