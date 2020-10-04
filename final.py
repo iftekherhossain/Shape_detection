@@ -5,6 +5,7 @@ from main import ShapeUtils, CentroidTracker
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 from imutils.video import FPS
+from imutils.video import WebcamVideoStream
 
 cap = cv2.VideoCapture(0)
 utils = ShapeUtils()
