@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 from collections import OrderedDict
 from scipy.spatial import distance as dist
+import sqlite3
 
 TEXT_COLOR = (0, 0, 255)
 TEXT_SIZE = 1
@@ -80,9 +81,9 @@ class ShapeUtils():
         return centroids
 
     @staticmethod
-    def check_linecross(line, point):
-        a = abs(int(point-line))
-        if a <= 20:
+    def check_linecross(line, point, clearance):
+        a_ = abs(int(point-line))
+        if a_ <= clearance:
             return 1
         else:
             return 0
@@ -94,9 +95,11 @@ class ShapeUtils():
             if abs(w-h) <= 50:  # cheak wheather height and width nearly equal
                 cv2.putText(frame, "Square :"+area_contour, (cx, cy),
                             font, size, color)
+                return "square"
             else:
                 cv2.putText(frame, "Rectangle :"+area_contour, (cx, cy),
                             font, size, color)
+                return "rectangle"
         elif len(approx) == 3:  # check for triangle
             area_contour = str(round(a*AREA_CONST, 2))+"in^2"
             cv2.putText(frame, "Triangle :" + area_contour, (cx, cy),
@@ -114,6 +117,7 @@ class ShapeUtils():
             if abs(w-h) <= 50:
                 cv2.putText(frame, "Circle:" + area_contour, (cx, cy),
                             font, size, color)
+                return "circle"
             else:
                 cv2.putText(frame, "Ellipse:" + area_contour, (cx, cy),
                             font, size, color)
@@ -204,5 +208,23 @@ class Threading():
         #cv2.imshow("thresh", thresh)
         opening = cv2.morphologyEx(
             thresh, cv2.MORPH_OPEN, kernel, iterations=1)
-        #cv2.imshow("opening", opening)
+        cv2.imshow("opening", opening)
         return opening
+
+
+class DataBase():
+    def __init__(self, file):
+        self.conn = sqlite3.connect(file)
+        self.c = self.conn.cursor()
+        self.c.execute(
+            'CREATE TABLE IF NOT EXISTS my_table(id REAL, shape TEXT, size TEXT, color TEXT)')
+
+    def data_entry(self, id, shape, size, color=""):
+        self.c.execute("INSERT INTO my_table (id,shape,size,color) VALUES (?, ?, ?, ?)",
+                       (id, shape, size, color))
+        self.conn.commit()
+
+    def read_from_db(self):
+        self.c.execute('SELECT * FROM my_table')
+        data = self.c.fetchall()
+        return data

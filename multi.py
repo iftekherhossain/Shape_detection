@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import imutils
-from main import ShapeUtils, CentroidTracker, Threading
+from main import ShapeUtils, CentroidTracker, Threading, DataBase
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 from imutils.video import FPS
@@ -25,6 +25,10 @@ FRAME_WIDTH = 540
 count = 0
 c_arr = []
 
+db = DataBase('shapes.db')
+item_id = len(db.read_from_db())
+print("hello", item_id)
+
 
 def counting(contours, frame):
     global count
@@ -38,7 +42,7 @@ def counting(contours, frame):
         if c[0] < 80:  # if any object centroid tends to end of the frame ignore the frame
             continue
         x_, y_ = c[0], c[1]
-        if utils.check_linecross(300, x_) and i not in c_arr:
+        if utils.check_linecross(300, x_, 20) and i not in c_arr:
             count += 1
             c_arr.append(i)
         cv2.putText(frame, "ID : " + str(i), (x_, y_), cv2.FONT_HERSHEY_SIMPLEX, 1,
@@ -70,12 +74,12 @@ def shape_approx(contours, frame):
             wh = rect[1]
             w = wh[0]
             h = wh[1]
+            _shape = utils.print_all(frame, approx, cx, cy, a, w, h)
             #print("wh", wh)
             if h <= FRAME_HEIGHT and w <= FRAME_WIDTH:  # filter out wheather frame as a contour area
                 cv2.drawContours(frame, [box_main], -1, (0, 255, 0), 3)
             else:
                 continue
-            utils.print_all(frame, approx, cx, cy, a, w, h)
 
 
 _, first_frame = cap.read()
@@ -100,7 +104,7 @@ while True:
     t2.start()
 
     t1.join()
-    t2.join()
+    # t2.join()
     cv2.imshow("frame", frame)
     #shape_approx(contours, frame)
     k = cv2.waitKey(1)
