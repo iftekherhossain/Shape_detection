@@ -92,14 +92,14 @@ while True:
             color_frame = frame[tl[1]:br[1], tl[0]:br[0]]
             bgr = np.sum(np.sum(color_frame, axis=0), axis=0)
             sh = (br[0]-tl[0])*(br[1]-tl[1])
-
             b = str(bgr[0]//sh)
             g = str(bgr[1]//sh)
             r = str(bgr[2]//sh)
             color = b+" "+g+" "+r
             _shape = utils.print_all(frame, approx, cx, cy, a, w, h)
             if utils.check_linecross(300, cx, 10):
-                db.data_entry(int(item_id), str(_shape), str(a), color)
+                db.data_entry(int(item_id), str(_shape),
+                              str(a*AREA_CONST), color)
                 print("success")
                 item_id += 1
             #print("wh", wh)

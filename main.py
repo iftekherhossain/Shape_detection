@@ -104,14 +104,17 @@ class ShapeUtils():
             area_contour = str(round(a*AREA_CONST, 2))+"in^2"
             cv2.putText(frame, "Triangle :" + area_contour, (cx, cy),
                         font, size, color)
+            return "triangle"
         elif len(approx) == 5:  # cheack for pentagone
             area_contour = str(round(a*AREA_CONST, 2))+"in^2"
             cv2.putText(frame, "Pentagone:" + area_contour, (cx, cy),
                         font, size, color)
+            return "pentagone"
         elif len(approx) == 10 and abs(w-h) <= 50:  # cheack for Star
             area_contour = str(round(a*AREA_CONST, 2))+"in^2"
             cv2.putText(frame, "Star:" + area_contour, (cx, cy),
                         font, size, color)
+            return "star"
         elif len(approx) > 10:  # check for wheater it is circle or elips
             area_contour = str(round(a*AREA_CONST, 2))+"in^2"
             if abs(w-h) <= 50:
@@ -121,6 +124,7 @@ class ShapeUtils():
             else:
                 cv2.putText(frame, "Ellipse:" + area_contour, (cx, cy),
                             font, size, color)
+                return "ellipse"
 
 
 class CentroidTracker():
@@ -217,7 +221,7 @@ class DataBase():
         self.conn = sqlite3.connect(file)
         self.c = self.conn.cursor()
         self.c.execute(
-            'CREATE TABLE IF NOT EXISTS my_table(id REAL, shape TEXT, size TEXT, color TEXT)')
+            'CREATE TABLE IF NOT EXISTS my_table(id INTEGER, shape TEXT, size TEXT, color TEXT)')
 
     def data_entry(self, id, shape, size, color=""):
         self.c.execute("INSERT INTO my_table (id,shape,size,color) VALUES (?, ?, ?, ?)",
