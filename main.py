@@ -218,7 +218,7 @@ class Threading():
 
 class DataBase():
     def __init__(self, file):
-        self.conn = sqlite3.connect(file)
+        self.conn = sqlite3.connect(file, check_same_thread=False)
         self.c = self.conn.cursor()
         self.c.execute(
             'CREATE TABLE IF NOT EXISTS my_table(id INTEGER, shape TEXT, size TEXT, color TEXT)')

@@ -13,7 +13,7 @@ from threading import Thread
 
 cap = cv2.VideoCapture(0)
 utils = ShapeUtils()
-ct = CentroidTracker()
+ct = CentroidTracker(14)
 
 TEXT_COLOR = (0, 0, 255)
 TEXT_SIZE = 1
@@ -26,15 +26,17 @@ FRAME_WIDTH = 540
 # kernel1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
 count = 0
 c_arr = []
+s_arr = []
 _, first_frame = cap.read()
 first_frame = first_frame[:400, 100:]
 
 db = DataBase('shapes.db')
 item_id = len(db.read_from_db())
-
+temp_database = []
 fps = FPS().start()
 while True:
     fps.update()
+    inv_objects = {}
     _, frame = cap.read()  # grab frames from the video feed
     frame = frame[:400, 100:]
     print("frame shape", frame.shape)
@@ -72,7 +74,7 @@ while True:
     print("COUNTING", count)
     for contour in contours:  # loop over all contours
         a = cv2.contourArea(contour)  # area of the contour
-        if 210000 > a > 130:  # bound the area of the contour
+        if 200000 > a > 130:  # bound the area of the contour
             approx = cv2.approxPolyDP(
                 contour, 0.01*cv2.arcLength(contour, True), True)
             # cv2.drawContours(frame, [approx], -1, (0, 0, 255), 3)
@@ -89,6 +91,7 @@ while True:
             M = cv2.moments(contour)
             cx = int(M["m10"]/M["m00"])
             cy = int(M["m01"]/M["m00"])
+
             #print("kuki", rect)
             wh = rect[1]
             w = wh[0]
@@ -101,14 +104,19 @@ while True:
             r = str(bgr[2]//sh)
             color = b+" "+g+" "+r
             _shape = utils.print_all(frame, approx, cx, cy, a, w, h)
-            if utils.check_linecross(300, cx, 8):
-                db.data_entry(int(item_id), str(_shape),
-                              str(a*AREA_CONST), color)
-                # db.data_entry(int(item_id), str(_shape),
-                #               str(a*AREA_CONST), color)
+            inv_objects = {tuple(v): k for k, v in objects.items()}
+            print("inv_objects", inv_objects)
+            cur_object_cent = tuple((cx, cy))
+            try:
+                item_id = inv_objects[cur_object_cent]
+            except:
+                pass
+            if utils.check_linecross(300, cx, 20) and item_id not in s_arr:
+                temp = [int(item_id), str(_shape), str(a*AREA_CONST), color]
+                temp_database.append(temp)
                 print("success")
+                s_arr.append(item_id)
                 item_id += 1
-
             #print("wh", wh)
             if h <= FRAME_HEIGHT and w <= FRAME_WIDTH:  # filter out wheather frame as a contour area
                 cv2.drawContours(frame, [box_main], -1, (0, 255, 0), 3)
@@ -125,6 +133,7 @@ while True:
 fps.stop()
 print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
 print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+print(temp_database)
 # When everything is done, release the capture
 cap.release()
 cv2.destroyAllWindows()
