@@ -47,8 +47,8 @@ while True:
     # cv2.imshow("blurred_frame..", blur_frame)
     gray = cv2.cvtColor(blur_frame, cv2.COLOR_BGR2GRAY)
     # cv2.imshow("gray", gray)
-    _, thresh = cv2.threshold(gray, 45, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C)
-    # cv2.imshow("thresh", thresh)
+    _, thresh = cv2.threshold(gray, 13, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C)
+    cv2.imshow("thresh", thresh)
     opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
     # cv2.imshow("opening", opening)
     #-----------------------------------------------------------------------------#
@@ -96,13 +96,12 @@ while True:
             wh = rect[1]
             w = wh[0]
             h = wh[1]
-            color_frame = frame[tl[1]:br[1], tl[0]:br[0]]
+            #-----------For color detection----------#
+            color_frame = frame[cy:cy+1, cx:cx+1]
             bgr = np.sum(np.sum(color_frame, axis=0), axis=0)
-            sh = (br[0]-tl[0])*(br[1]-tl[1])
-            b = str(bgr[0]//sh)
-            g = str(bgr[1]//sh)
-            r = str(bgr[2]//sh)
-            color = b+" "+g+" "+r
+            print("RGB Color", bgr)
+            color = str(bgr[2])+" "+str(bgr[1])+" "+str(bgr[0])
+            #----------------------------------------#
             _shape = utils.print_all(frame, approx, cx, cy, a, w, h)
             inv_objects = {tuple(v): k for k, v in objects.items()}
             print("inv_objects", inv_objects)
@@ -134,6 +133,10 @@ fps.stop()
 print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
 print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 print(temp_database)
+
+for data in temp_database:
+    db.data_entry(data[0], data[1], data[2], data[3])
+
 # When everything is done, release the capture
 cap.release()
 cv2.destroyAllWindows()
