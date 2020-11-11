@@ -216,6 +216,30 @@ class Threading():
         return opening
 
 
+class Background():
+    def __init__(self, history=200, varthresh=20, shadow=False):
+        self.fgbg = cv2.createBackgroundSubtractorMOG2(
+            history=history, varThreshold=varthresh, detectShadows=shadow)
+
+    def background_subtraction_difframe(self, first_frame, frame):
+        difference = cv2.absdiff(first_frame, frame)
+        cv2.imshow("diff", difference)
+        blur_frame = cv2.bilateralFilter(difference, 11, 200, 200)
+        # cv2.imshow("blurred_frame..", blur_frame)
+        gray = cv2.cvtColor(blur_frame, cv2.COLOR_BGR2GRAY)
+        # cv2.imshow("gray", gray)
+        _, thresh = cv2.threshold(
+            gray, 25, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C)
+        cv2.imshow("thresh", thresh)
+        opening = cv2.morphologyEx(
+            thresh, cv2.MORPH_OPEN, kernel, iterations=1)
+        return opening
+
+    def background_subtraction_mog(self, frame):
+        fgmask = self.fgbg.apply(frame)
+        return fgmask
+
+
 class DataBase():
     def __init__(self, file):
         self.conn = sqlite3.connect(file, check_same_thread=False)

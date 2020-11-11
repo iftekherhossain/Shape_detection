@@ -4,7 +4,7 @@ This script detects shape and color,counts and add to database real time
 import numpy as np
 import cv2
 import imutils
-from main import ShapeUtils, CentroidTracker, DataBase
+from main import ShapeUtils, CentroidTracker, DataBase, Background
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 from imutils.video import FPS
@@ -14,6 +14,8 @@ from threading import Thread
 cap = cv2.VideoCapture(0)
 utils = ShapeUtils()
 ct = CentroidTracker(14)
+bg = Background()
+
 
 TEXT_COLOR = (0, 0, 255)
 TEXT_SIZE = 1
@@ -39,18 +41,12 @@ while True:
     inv_objects = {}
     _, frame = cap.read()  # grab frames from the video feed
     frame = frame[:400, 100:]
+    uframe = frame
     print("frame shape", frame.shape)
     # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    difference = cv2.absdiff(first_frame, frame)
-    cv2.imshow("diff", difference)
-    blur_frame = cv2.bilateralFilter(difference, 11, 200, 200)
-    # cv2.imshow("blurred_frame..", blur_frame)
-    gray = cv2.cvtColor(blur_frame, cv2.COLOR_BGR2GRAY)
-    # cv2.imshow("gray", gray)
-    _, thresh = cv2.threshold(gray, 13, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C)
-    cv2.imshow("thresh", thresh)
-    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
-    # cv2.imshow("opening", opening)
+
+    opening = bg.background_subtraction_difframe(first_frame, frame)
+    #opening = bg.background_subtraction_mog(frame)
     #-----------------------------------------------------------------------------#
     contours = cv2.findContours(
         opening, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
